@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.io.File;
@@ -11,10 +12,9 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "MySQL JDBC Driver not found", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         JFrame frame = new JFrame("User Management System");
@@ -25,24 +25,41 @@ public class Main {
         JPanel mainPanel = new JPanel(new CardLayout());
         frame.add(mainPanel, BorderLayout.CENTER);
 
-        JPanel loginPanel = new JPanel(new GridLayout(3, 2));
+        JPanel loginPanel = new JPanel(new GridBagLayout());
+        loginPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         JTextField loginUsernameField = new JTextField();
         JPasswordField loginPasswordField = new JPasswordField();
         JButton loginButton = new JButton("Login");
         JButton signupButton = new JButton("Signup");
 
-        loginPanel.add(new JLabel("Username:"));
-        loginPanel.add(loginUsernameField);
-        loginPanel.add(new JLabel("Password:"));
-        loginPanel.add(loginPasswordField);
-        loginPanel.add(loginButton);
-        loginPanel.add(signupButton);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        loginPanel.add(new JLabel("Username:"), gbc);
+        gbc.gridx = 1;
+        loginPanel.add(loginUsernameField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        loginPanel.add(new JLabel("Password:"), gbc);
+        gbc.gridx = 1;
+        loginPanel.add(loginPasswordField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        loginPanel.add(loginButton, gbc);
+        gbc.gridx = 1;
+        loginPanel.add(signupButton, gbc);
 
         mainPanel.add(loginPanel, "Login");
 
         JPanel signupPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        signupPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField fullNameField = new JTextField();
@@ -65,21 +82,6 @@ public class Main {
         JButton imageButton = new JButton("Select Image");
         JButton registerButton = new JButton("Register");
         JButton backButton = new JButton("Back");
-
-        // Image display field above the select image button
-        gbc.gridx = 2;
-        gbc.gridy = 0;
-        gbc.gridheight = 1;
-        gbc.anchor = GridBagConstraints.NORTHEAST;
-        signupPanel.add(imageDisplay, gbc);
-
-        gbc.gridx = 2;
-        gbc.gridy = 1;
-        gbc.gridheight = 1;
-        signupPanel.add(imageButton, gbc);
-
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.gridheight = 1;
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -111,7 +113,6 @@ public class Main {
         gbc.gridx = 1;
         signupPanel.add(presentAddressField, gbc);
 
-
         gbc.gridx = 0;
         gbc.gridy = 5;
         signupPanel.add(new JLabel("Permanent Address:"), gbc);
@@ -135,6 +136,17 @@ public class Main {
         signupPanel.add(registerButton, gbc);
         gbc.gridx = 1;
         signupPanel.add(backButton, gbc);
+
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.gridheight = 1;
+        gbc.anchor = GridBagConstraints.NORTHEAST;
+        signupPanel.add(imageDisplay, gbc);
+
+        gbc.gridx = 2;
+        gbc.gridy = 1;
+        gbc.gridheight = 1;
+        signupPanel.add(imageButton, gbc);
 
         mainPanel.add(signupPanel, "Signup");
 
@@ -197,7 +209,6 @@ public class Main {
             }
         });
 
-
         registerButton.addActionListener(e -> {
             String fullName = fullNameField.getText();
             String username = usernameField.getText();
@@ -215,7 +226,6 @@ public class Main {
 
         frame.setVisible(true);
     }
-
     private static void handleRegistration(String fullName, String username, String password, String dob, String presentAddress, String permanentAddress, String sex, String phoneNumber, String image) {
         String checkQuery = "SELECT COUNT(*) FROM users WHERE username = ?";
         String insertQuery = "INSERT INTO pending_users (full_name, username, password, dob, present_address, permanent_address, sex, phone_number, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
