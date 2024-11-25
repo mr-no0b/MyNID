@@ -3,15 +3,34 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
+import java.util.Properties;
 
 public class Main {
-    private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD = "12345678";
+    private static Properties loadDatabaseProperties() {
+        Properties properties = new Properties();
+        try (FileInputStream input = new FileInputStream("db.properties")) {
+            properties.load(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties;
+    }
+
+    private static Connection getConnection() throws SQLException {
+        Properties properties = loadDatabaseProperties();
+        String url = properties.getProperty("db.url");
+        String username = properties.getProperty("db.username");
+        String password = properties.getProperty("db.password");
+        return DriverManager.getConnection(url, username, password);
+    }
+
     private static boolean authenticateAdmin(String username, String password) {
         String query = "SELECT * FROM admin WHERE username = ? AND password = ?";
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/login", "root", "12345678");
+        try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
             stmt.setString(2, password);
