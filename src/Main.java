@@ -9,7 +9,19 @@ import java.text.ParseException;
 public class Main {
     private static final String ADMIN_USERNAME = "admin";
     private static final String ADMIN_PASSWORD = "12345678";
-
+    private static boolean authenticateAdmin(String username, String password) {
+        String query = "SELECT * FROM admin WHERE username = ? AND password = ?";
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/login", "root", "12345678");
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -171,7 +183,7 @@ public class Main {
         adminLoginButton.addActionListener(e -> {
             String username = JOptionPane.showInputDialog(frame, "Enter admin username:");
             String password = JOptionPane.showInputDialog(frame, "Enter admin password:");
-            if (ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password)) {
+            if (authenticateAdmin(username, password)) {
                 cl.show(mainPanel, "Admin");
                 loadPendingRegistrations(pendingPanel);
             } else {
