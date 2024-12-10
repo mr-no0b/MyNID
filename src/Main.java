@@ -186,7 +186,65 @@ public class Main {
             e.printStackTrace();
         }
     }
+    // Add placeholder text and focus listener to text fields
+    private static void addPlaceholderText(JTextField textField, String placeholder) {
+        textField.setText(placeholder);
+        textField.setForeground(Color.GRAY);
+        textField.setFont(new Font("Arial", Font.ITALIC, 12));
+        if (textField instanceof JPasswordField) {
+            ((JPasswordField) textField).setEchoChar((char) 0);
+        }
+        textField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (textField.getText().equals(placeholder)) {
+                    textField.setText("");
+                    textField.setForeground(Color.BLACK);
+                    textField.setFont(new Font("Arial", Font.PLAIN, 18));
+                }
+            }
 
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (textField.getText().isEmpty()) {
+                    textField.setText(placeholder);
+                    textField.setForeground(Color.GRAY);
+                    textField.setFont(new Font("Arial", Font.ITALIC, 18));
+                }
+            }
+        });
+    }
+    private static JFormattedTextField createDobField() {
+        MaskFormatter dateMask = null;
+        try {
+            dateMask = new MaskFormatter("##-##-####");
+            dateMask.setPlaceholderCharacter('_');
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        JFormattedTextField dobField = new JFormattedTextField(dateMask);
+        dobField.setText("DD-MM-YYYY"); // Set the initial text to the placeholder format
+        dobField.setForeground(Color.GRAY);
+        dobField.setFont(new Font("Arial", Font.ITALIC, 15));
+
+        dobField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (dobField.getText().equals("DD-MM-YYYY")) {
+                    dobField.setText("");
+                    dobField.setForeground(Color.BLACK);
+                    dobField.setFont(new Font("Arial", Font.PLAIN, 18));
+                }
+            }
+
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (dobField.getText().isEmpty()) {
+                    dobField.setText("DD-MM-YYYY");
+                    dobField.setForeground(Color.GRAY);
+                    dobField.setFont(new Font("Arial", Font.ITALIC, 15));
+                }
+            }
+        });
+
+        return dobField;
+    }
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -212,13 +270,34 @@ public class Main {
         topPanel.setPreferredSize(new Dimension(frame.getWidth(), 100));
         topPanel.setLayout(new BorderLayout());
 
-// Add logo
         // Add logo and resize it
         ImageIcon logoIcon = new ImageIcon("res/logo.png");
-        Image logoImage = logoIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH); // Resize the logo
+        Image logoImage = logoIcon.getImage().getScaledInstance(200, 200, Image.SCALE_SMOOTH); // Resize the logo
         JLabel logoLabel = new JLabel(new ImageIcon(logoImage));
         logoLabel.setHorizontalAlignment(SwingConstants.LEFT);
         topPanel.add(logoLabel, BorderLayout.WEST);
+
+        // Add weather information
+        JLabel weatherLabel = new JLabel();
+        weatherLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        topPanel.add(weatherLabel, BorderLayout.EAST);
+
+        // Fetch and display weather information
+        SwingUtilities.invokeLater(() -> {
+            String temperature = WeatherFetcher.getTemperature("Khulna"); // Replace "Khulna" with your desired city
+            weatherLabel.setText(temperature);
+            weatherLabel.setFont(new Font("Arial", Font.BOLD, 24)); // Set font size to 24
+            weatherLabel.setForeground(Color.WHITE); // Set font color to white
+
+            // Load and resize weather icon
+            ImageIcon weatherIcon = new ImageIcon("res/weather-icon.png"); // Replace with your weather icon path
+            Image weatherImage = weatherIcon.getImage(); // Resize the icon to 50x50
+            weatherLabel.setIcon(new ImageIcon(weatherImage));
+            weatherLabel.setIconTextGap(10); // Add some gap between icon and text
+
+            // Add padding to shift the label to the right
+            weatherLabel.setBorder(new EmptyBorder(0, 0, 0, 20)); // Add padding to the right
+        });
 
         frame.add(topPanel, BorderLayout.NORTH);
 
@@ -254,7 +333,52 @@ public class Main {
         JLabel loginLabel = new JLabel("Already have an account?");
         JButton loginButton = new JButton("Login");
         JButton adminLoginButton = new JButton("Administration");
+        // Update the font size of the login label
+        // Update the font size, style, and color of the login label
+        loginLabel.setFont(new Font("Arial", Font.BOLD | Font.ITALIC, 30)); // Set font size to 20, bold and italic
+        loginLabel.setForeground(new Color(9, 9, 56)); // Set text color to a stylish blue
 
+// Update the style of the login button
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14)); // Set font size to 14
+        loginButton.setBackground(Color.BLUE); // Set background color to blue
+        loginButton.setForeground(Color.WHITE); // Set text color to white
+
+// Update the style of the administration button
+        adminLoginButton.setFont(new Font("Arial", Font.BOLD, 14)); // Set font size to 14
+        adminLoginButton.setBackground(Color.RED); // Set background color to red
+        loginButton.setPreferredSize(new Dimension(200, 50));
+        adminLoginButton.setForeground(Color.WHITE); // Set text color to white
+        adminLoginButton.setPreferredSize(new Dimension(200, 50));
+        loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                loginButton.setBackground(new Color(30,30,255)); // Change background color on hover
+                loginButton.setForeground(Color.WHITE); // Change text color on hover
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                loginButton.setBackground(Color.BLUE); // Reset background color when not hovered
+                loginButton.setForeground(Color.WHITE); // Reset text color when not hovered
+            }
+        });
+
+// Update the style of the administration button
+        adminLoginButton.setFont(new Font("Arial", Font.BOLD, 14)); // Set font size to 14
+        adminLoginButton.setBackground(Color.RED); // Set background color to red
+        adminLoginButton.setForeground(Color.WHITE); // Set text color to white
+        adminLoginButton.setPreferredSize(new Dimension(200, 50)); // Set preferred size
+
+// Add hover effect to the administration button
+        adminLoginButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                adminLoginButton.setBackground(new Color(255, 30, 30)); // Change background color on hover
+                adminLoginButton.setForeground(Color.WHITE); // Change text color on hover
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                adminLoginButton.setBackground(Color.RED); // Reset background color when not hovered
+                adminLoginButton.setForeground(Color.WHITE); // Reset text color when not hovered
+            }
+        });
         gbc.gridx = 0;
         gbc.gridy = 0;
         leftPanel.add(loginLabel, gbc);
@@ -265,6 +389,7 @@ public class Main {
 
         homePanel.add(leftPanel);
 
+        // Right section for registration
         // Right section for registration
         JPanel rightPanel = new JPanel(new GridBagLayout()) {
             private Image backgroundImage = new ImageIcon("res/right-bg.png").getImage();
@@ -281,31 +406,72 @@ public class Main {
             }
         };
         rightPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-        gbc = new GridBagConstraints();
+
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel registrationLabel = new JLabel("Registration");
+        registrationLabel.setFont(new Font("Arial", Font.BOLD, 24)); // Increase font size
+
         JTextField fullNameField = new JTextField();
+        fullNameField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        fullNameField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        fullNameField.setToolTipText("Enter your full name"); // Placeholder
+
         JTextField usernameField = new JTextField();
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        usernameField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        usernameField.setToolTipText("Enter your username"); // Placeholder
+
         JPasswordField passwordField = new JPasswordField();
-        final JFormattedTextField dobField;
-        try {
-            MaskFormatter dateMask = new MaskFormatter("####-##-##");
-            dateMask.setPlaceholderCharacter('_');
-            dobField = new JFormattedTextField(dateMask);
-        } catch (ParseException e) {
-            throw new RuntimeException("Date mask creation failed", e);
-        }
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        passwordField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        passwordField.setToolTipText("Enter your password"); // Placeholder
+
+        JFormattedTextField dobField = createDobField();
+        dobField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        dobField.setPreferredSize(new Dimension(200, 30)); // Increase size
+
         JTextField presentAddressField = new JTextField();
+        presentAddressField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        presentAddressField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        presentAddressField.setToolTipText("Enter your present address"); // Placeholder
+
         JTextField permanentAddressField = new JTextField();
+        permanentAddressField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        permanentAddressField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        permanentAddressField.setToolTipText("Enter your permanent address"); // Placeholder
+
         JTextField sexField = new JTextField();
+        sexField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        sexField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        sexField.setToolTipText("Enter your gender"); // Placeholder
+
         JTextField phoneNumberField = new JTextField();
+        phoneNumberField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        phoneNumberField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        phoneNumberField.setToolTipText("Enter your phone number"); // Placeholder
+
         JLabel imageLabel = new JLabel();
         JLabel imageDisplay = new JLabel();
+        imageDisplay.setPreferredSize(new Dimension(70, 100)); // Square display for image
+        //imageDisplay.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // Add border
+
         JButton imageButton = new JButton("Select Image");
         JButton registerButton = new JButton("Signup");
-
+        // Apply placeholder text to registration fields
+        addPlaceholderText(fullNameField, "Enter your full name");
+        addPlaceholderText(usernameField, "Enter your username");
+        addPlaceholderText(passwordField, "Enter your password");
+        addPlaceholderText(dobField, "YYYY-MM-DD");
+        addPlaceholderText(presentAddressField, "Enter your present address");
+        addPlaceholderText(permanentAddressField, "Enter your permanent address");
+        addPlaceholderText(sexField, "Enter your sex");
+        addPlaceholderText(phoneNumberField, "Enter your phone number");
+        registerButton.setFont(new Font("Arial", Font.BOLD, 14)); // Set font size to 14
+        registerButton.setBackground(Color.GREEN); // Set background color to green
+        registerButton.setForeground(Color.WHITE); // Set text color to white
+        registerButton.setPreferredSize(new Dimension(200, 50)); // Set preferred size
         gbc.gridx = 0;
         gbc.gridy = 0;
         rightPanel.add(registrationLabel, gbc);
@@ -358,11 +524,24 @@ public class Main {
 
         gbc.gridx = 0;
         gbc.gridy = 9;
-        rightPanel.add(registerButton, gbc);
+        rightPanel.add(imageDisplay, gbc); // Add image display
         gbc.gridx = 1;
         rightPanel.add(imageButton, gbc);
 
+        // Add an empty label to create space above the signup button
+        gbc.gridx = 0;
+        gbc.gridy = 29; // Adjust the row index to create space
+        rightPanel.add(new JLabel(" "), gbc); // Empty label for spacing
+
+        gbc.gridx = 0;
+        gbc.gridy = 20;
+        gbc.gridwidth = 2; // Span across two columns
+        gbc.anchor = GridBagConstraints.CENTER; // Center the button
+        rightPanel.add(registerButton, gbc);
+
         homePanel.add(rightPanel);
+
+
 
         // Admin login panel
         JPanel adminLoginPanel = new JPanel(new GridBagLayout());
@@ -496,12 +675,21 @@ public class Main {
             handleRegistration(fullName, username, password, dob, presentAddress, permanentAddress, sex, phoneNumber, image);
         });
 
+        // Adjust the size of the image display to passport size (35mm x 45mm)
+        // Adjust the size of the image display to passport size (35mm x 45mm)
+        // Adjust the size of the image display to a square size (e.g., 100x100)
+        // Adjust the size of the image display to a square size (e.g., 100x100)
+        imageDisplay.setPreferredSize(new Dimension(100, 100)); // Square display for image
+        imageDisplay.setMaximumSize(new Dimension(100, 100)); // Ensure it stays square
+        imageDisplay.setMinimumSize(new Dimension(100, 100)); // Ensure it stays square
+        //imageDisplay.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // Add border to indicate the box
+
         imageButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             int result = fileChooser.showOpenDialog(frame);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
-                ImageIcon imageIcon = new ImageIcon(new ImageIcon(selectedFile.getAbsolutePath()).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT));
+                ImageIcon imageIcon = new ImageIcon(new ImageIcon(selectedFile.getAbsolutePath()).getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH));
                 imageDisplay.setIcon(imageIcon);
                 imageDisplay.setText(""); // Clear any previous text
                 imageLabel.setText(selectedFile.getAbsolutePath());
