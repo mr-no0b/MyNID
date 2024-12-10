@@ -73,10 +73,14 @@ public class Main {
                 return;
             }
 
+            // Convert date from DD-MM-YYYY to YYYY-MM-DD
+            String[] dobParts = dob.split("-");
+            String formattedDob = dobParts[2] + "-" + dobParts[1] + "-" + dobParts[0];
+
             insertStmt.setString(1, fullName);
             insertStmt.setString(2, username);
             insertStmt.setString(3, password);
-            insertStmt.setString(4, dob);
+            insertStmt.setString(4, formattedDob);
             insertStmt.setString(5, presentAddress);
             insertStmt.setString(6, permanentAddress);
             insertStmt.setString(7, sex);
@@ -106,13 +110,57 @@ public class Main {
                 String phoneNumber = rs.getString("phone_number");
                 String image = rs.getString("image");
 
-                JPanel userPanel = new JPanel(new BorderLayout());
-                JLabel userLabel = new JLabel("<html>Full Name: " + fullName + "<br>Username: " + username + "<br>Date of Birth: " + dob + "<br>Present Address: " + presentAddress + "<br>Permanent Address: " + permanentAddress + "<br>Sex: " + sex + "<br>Phone Number: " + phoneNumber + "</html>");
-                JButton approveButton = new JButton("Approve");
+                JPanel userPanel = new JPanel(new GridBagLayout());
+                userPanel.setPreferredSize(new Dimension(600, 200)); // Set fixed size for each user panel
+                userPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // Add border for better visibility
+
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(5, 5, 5, 5);
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+
                 JLabel imageLabel = new JLabel();
                 if (image != null) {
                     imageLabel.setIcon(new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT)));
                 }
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                gbc.gridheight = 3;
+                userPanel.add(imageLabel, gbc);
+
+                gbc.gridheight = 1;
+                gbc.gridx = 1;
+                gbc.gridy = 0;
+                userPanel.add(new JLabel("Full Name: " + fullName), gbc);
+
+                gbc.gridy = 1;
+                userPanel.add(new JLabel("Username: " + username), gbc);
+
+                gbc.gridy = 2;
+                userPanel.add(new JLabel("Date of Birth: " + dob), gbc);
+
+                gbc.gridx = 2;
+                gbc.gridy = 0;
+                userPanel.add(new JLabel("Present Address: " + presentAddress), gbc);
+
+                gbc.gridy = 1;
+                userPanel.add(new JLabel("Permanent Address: " + permanentAddress), gbc);
+
+                gbc.gridy = 2;
+                userPanel.add(new JLabel("Sex: " + sex), gbc);
+
+                gbc.gridx = 3;
+                gbc.gridy = 0;
+                userPanel.add(new JLabel("Phone Number: " + phoneNumber), gbc);
+
+                JButton approveButton = new JButton("Approve");
+                approveButton.setBackground(Color.GREEN); // Set background color to green
+                approveButton.setForeground(Color.WHITE); // Set text color to white
+                approveButton.setPreferredSize(new Dimension(100, 30)); // Set fixed size for approve button
+
+                JButton deleteButton = new JButton("Delete");
+                deleteButton.setBackground(Color.RED); // Set background color to red
+                deleteButton.setForeground(Color.WHITE); // Set text color to white
+                deleteButton.setPreferredSize(new Dimension(100, 30)); // Set fixed size for delete button
 
                 approveButton.addActionListener(e -> {
                     approveRegistration(username);
@@ -121,9 +169,20 @@ public class Main {
                     pendingPanel.repaint();
                 });
 
-                userPanel.add(imageLabel, BorderLayout.WEST);
-                userPanel.add(userLabel, BorderLayout.CENTER);
-                userPanel.add(approveButton, BorderLayout.EAST);
+                deleteButton.addActionListener(e -> {
+                    deleteRegistration(username);
+                    pendingPanel.remove(userPanel);
+                    pendingPanel.revalidate();
+                    pendingPanel.repaint();
+                });
+
+                gbc.gridx = 4;
+                gbc.gridy = 0;
+                userPanel.add(approveButton, gbc);
+
+                gbc.gridy = 1;
+                userPanel.add(deleteButton, gbc);
+
                 pendingPanel.add(userPanel);
             }
         } catch (SQLException e) {
@@ -131,6 +190,17 @@ public class Main {
         }
         pendingPanel.revalidate();
         pendingPanel.repaint();
+    }
+
+    private static void deleteRegistration(String username) {
+        try (Connection conn = getConnection()) {
+            String deleteQuery = "DELETE FROM pending_users WHERE username = ?";
+            PreparedStatement deleteStmt = conn.prepareStatement(deleteQuery);
+            deleteStmt.setString(1, username);
+            deleteStmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void approveRegistration(String username) {
@@ -166,25 +236,151 @@ public class Main {
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 profilePanel.removeAll();
-                profilePanel.setLayout(new GridLayout(0, 1));
-                profilePanel.add(new JLabel("Full Name: " + rs.getString("full_name")));
-                profilePanel.add(new JLabel("Username: " + rs.getString("username")));
-                profilePanel.add(new JLabel("Date of Birth: " + rs.getString("dob")));
-                profilePanel.add(new JLabel("Present Address: " + rs.getString("present_address")));
-                profilePanel.add(new JLabel("Permanent Address: " + rs.getString("permanent_address")));
-                profilePanel.add(new JLabel("Sex: " + rs.getString("sex")));
-                profilePanel.add(new JLabel("Phone Number: " + rs.getString("phone_number")));
+                profilePanel.setLayout(new GridBagLayout());
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(10, 10, 10, 10);
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+
+                JLabel imageLabel = new JLabel();
                 String image = rs.getString("image");
                 if (image != null) {
-                    JLabel imageLabel = new JLabel(new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT)));
-                    profilePanel.add(imageLabel);
+                    imageLabel.setIcon(new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(150, 150, Image.SCALE_DEFAULT)));
                 }
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                gbc.gridheight = 3;
+                profilePanel.add(imageLabel, gbc);
+
+                gbc.gridheight = 1;
+                gbc.gridx = 1;
+                gbc.gridy = 0;
+                profilePanel.add(createLabel("Full Name: ", rs.getString("full_name")), gbc);
+
+                gbc.gridy = 1;
+                profilePanel.add(createLabel("Username: ", rs.getString("username")), gbc);
+
+                gbc.gridy = 2;
+                profilePanel.add(createLabel("Date of Birth: ", rs.getString("dob")), gbc);
+
+                gbc.gridy = 3;
+                profilePanel.add(createLabel("Present Address: ", rs.getString("present_address")), gbc);
+
+                gbc.gridy = 4;
+                profilePanel.add(createLabel("Permanent Address: ", rs.getString("permanent_address")), gbc);
+
+                gbc.gridy = 5;
+                profilePanel.add(createLabel("Sex: ", rs.getString("sex")), gbc);
+
+                gbc.gridy = 6;
+                profilePanel.add(createLabel("Phone Number: ", rs.getString("phone_number")), gbc);
+
+                // Add back button
+                JButton backButton = new JButton("Back");
+                gbc.gridx = 0;
+                gbc.gridy = 7;
+                gbc.gridwidth = 1;
+                profilePanel.add(backButton, gbc);
+
+                // Add change password button
+                JButton changePasswordButton = new JButton("Change Password");
+                gbc.gridx = 1;
+                gbc.gridy = 7;
+                profilePanel.add(changePasswordButton, gbc);
+
+                backButton.addActionListener(e -> {
+                    CardLayout cl = (CardLayout) profilePanel.getParent().getLayout();
+                    cl.show(profilePanel.getParent(), "UserLogin");
+                });
+
+                changePasswordButton.addActionListener(e -> {
+                    JPanel changePasswordPanel = new JPanel(new GridBagLayout());
+                    GridBagConstraints c = new GridBagConstraints();
+                    c.insets = new Insets(10, 10, 10, 10);
+                    c.fill = GridBagConstraints.HORIZONTAL;
+
+                    JPasswordField oldPasswordField = new JPasswordField();
+                    JPasswordField newPasswordField = new JPasswordField();
+                    JPasswordField confirmPasswordField = new JPasswordField();
+                    JButton submitButton = new JButton("Submit");
+
+                    c.gridx = 0;
+                    c.gridy = 0;
+                    changePasswordPanel.add(new JLabel("Old Password:"), c);
+                    c.gridx = 1;
+                    changePasswordPanel.add(oldPasswordField, c);
+
+                    c.gridx = 0;
+                    c.gridy = 1;
+                    changePasswordPanel.add(new JLabel("New Password:"), c);
+                    c.gridx = 1;
+                    changePasswordPanel.add(newPasswordField, c);
+
+                    c.gridx = 0;
+                    c.gridy = 2;
+                    changePasswordPanel.add(new JLabel("Confirm Password:"), c);
+                    c.gridx = 1;
+                    changePasswordPanel.add(confirmPasswordField, c);
+
+                    c.gridx = 1;
+                    c.gridy = 3;
+                    changePasswordPanel.add(submitButton, c);
+
+                    profilePanel.removeAll();
+                    profilePanel.add(changePasswordPanel);
+                    profilePanel.revalidate();
+                    profilePanel.repaint();
+
+                    submitButton.addActionListener(ev -> {
+                        String oldPassword = new String(oldPasswordField.getPassword());
+                        String newPassword = new String(newPasswordField.getPassword());
+                        String confirmPassword = new String(confirmPasswordField.getPassword());
+
+                        if (!newPassword.equals(confirmPassword)) {
+                            JOptionPane.showMessageDialog(profilePanel, "New passwords do not match", "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+
+                        if (changeUserPassword(username, oldPassword, newPassword)) {
+                            JOptionPane.showMessageDialog(profilePanel, "Password changed successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+                            loadUserProfile(username, profilePanel);
+                        } else {
+                            JOptionPane.showMessageDialog(profilePanel, "Old password is incorrect", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    });
+                });
+
                 profilePanel.revalidate();
                 profilePanel.repaint();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean changeUserPassword(String username, String oldPassword, String newPassword) {
+        String query = "UPDATE users SET password = ? WHERE username = ? AND password = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, newPassword);
+            stmt.setString(2, username);
+            stmt.setString(3, oldPassword);
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static JPanel createLabel(String labelName, String labelValue) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel nameLabel = new JLabel(labelName);
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        JLabel valueLabel = new JLabel(labelValue);
+        valueLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        panel.add(nameLabel);
+        panel.add(valueLabel);
+        return panel;
     }
     // Add placeholder text and focus listener to text fields
     private static void addPlaceholderText(JTextField textField, String placeholder) {
@@ -200,6 +396,9 @@ public class Main {
                     textField.setText("");
                     textField.setForeground(Color.BLACK);
                     textField.setFont(new Font("Arial", Font.PLAIN, 18));
+                    if (textField instanceof JPasswordField) {
+                        ((JPasswordField) textField).setEchoChar('*');
+                    }
                 }
             }
 
@@ -207,7 +406,10 @@ public class Main {
                 if (textField.getText().isEmpty()) {
                     textField.setText(placeholder);
                     textField.setForeground(Color.GRAY);
-                    textField.setFont(new Font("Arial", Font.ITALIC, 18));
+                    textField.setFont(new Font("Arial", Font.ITALIC, 12));
+                    if (textField instanceof JPasswordField) {
+                        ((JPasswordField) textField).setEchoChar((char) 0);
+                    }
                 }
             }
         });
@@ -245,6 +447,17 @@ public class Main {
 
         return dobField;
     }
+    private static void clearFields(JTextField... fields) {
+        for (JTextField field : fields) {
+            field.setText("");
+            field.setForeground(Color.BLACK);
+            field.setFont(new Font("Arial", Font.PLAIN, 18));
+            if (field instanceof JPasswordField) {
+                ((JPasswordField) field).setEchoChar('*');
+            }
+        }
+    }
+
     public static void main(String[] args) {
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -411,46 +624,68 @@ public class Main {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel registrationLabel = new JLabel("Registration");
-        registrationLabel.setFont(new Font("Arial", Font.BOLD, 24)); // Increase font size
-
+        registrationLabel.setFont(new Font("Arial", Font.BOLD | Font.ITALIC, 35)); // Increase font size
+//        registrationLabel.setBorder(new EmptyBorder(0, 300, 0, 0));
         JTextField fullNameField = new JTextField();
         fullNameField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        fullNameField.setPreferredSize(new Dimension(200, 30)); // Increase size
-        fullNameField.setToolTipText("Enter your full name"); // Placeholder
-
+        fullNameField.setPreferredSize(new Dimension(300, 20)); // Increase size
+        fullNameField.setMinimumSize(new Dimension(300, 30)); // Enforce minimum size
+        fullNameField.setMaximumSize(new Dimension(300, 30));
         JTextField usernameField = new JTextField();
         usernameField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        usernameField.setPreferredSize(new Dimension(200, 30)); // Increase size
-        usernameField.setToolTipText("Enter your username"); // Placeholder
+        usernameField.setPreferredSize(new Dimension(300, 40)); // Increase size
 
         JPasswordField passwordField = new JPasswordField();
         passwordField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        passwordField.setPreferredSize(new Dimension(200, 30)); // Increase size
-        passwordField.setToolTipText("Enter your password"); // Placeholder
+        passwordField.setPreferredSize(new Dimension(300, 40)); // Increase size
+        passwordField.setEchoChar('*'); // Set echo character to '*'
+
+// Add placeholder text and focus listener to password field
+        passwordField.setText("Enter your password");
+        passwordField.setForeground(Color.GRAY);
+        passwordField.setFont(new Font("Arial", Font.ITALIC, 12));
+        passwordField.setEchoChar((char) 0); // Temporarily disable echo character for placeholder
+
+        passwordField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                if (passwordField.getText().equals("Enter your password")) {
+                    passwordField.setText("");
+                    passwordField.setForeground(Color.BLACK);
+                    passwordField.setFont(new Font("Arial", Font.PLAIN, 18));
+                    passwordField.setEchoChar('*'); // Enable echo character when focused
+                }
+            }
+
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                if (passwordField.getText().isEmpty()) {
+                    passwordField.setText("Enter your password");
+                    passwordField.setForeground(Color.GRAY);
+                    passwordField.setFont(new Font("Arial", Font.ITALIC, 12));
+                    passwordField.setEchoChar((char) 0); // Disable echo character for placeholder
+                }
+            }
+        });
 
         JFormattedTextField dobField = createDobField();
         dobField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        dobField.setPreferredSize(new Dimension(200, 30)); // Increase size
+        dobField.setPreferredSize(new Dimension(300, 40)); // Increase size
 
         JTextField presentAddressField = new JTextField();
         presentAddressField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        presentAddressField.setPreferredSize(new Dimension(200, 30)); // Increase size
-        presentAddressField.setToolTipText("Enter your present address"); // Placeholder
+        presentAddressField.setPreferredSize(new Dimension(300, 40)); // Increase size
 
         JTextField permanentAddressField = new JTextField();
         permanentAddressField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        permanentAddressField.setPreferredSize(new Dimension(200, 30)); // Increase size
-        permanentAddressField.setToolTipText("Enter your permanent address"); // Placeholder
+        permanentAddressField.setPreferredSize(new Dimension(300, 40)); // Increase size
 
-        JTextField sexField = new JTextField();
-        sexField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        sexField.setPreferredSize(new Dimension(200, 30)); // Increase size
-        sexField.setToolTipText("Enter your gender"); // Placeholder
+        String[] sexOptions = {"Male", "Female"};
+        JComboBox<String> sexComboBox = new JComboBox<>(sexOptions);
+        sexComboBox.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        sexComboBox.setPreferredSize(new Dimension(300, 40)); // Increase size
 
         JTextField phoneNumberField = new JTextField();
         phoneNumberField.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
-        phoneNumberField.setPreferredSize(new Dimension(200, 30)); // Increase size
-        phoneNumberField.setToolTipText("Enter your phone number"); // Placeholder
+        phoneNumberField.setPreferredSize(new Dimension(300, 40)); // Increase size
 
         JLabel imageLabel = new JLabel();
         JLabel imageDisplay = new JLabel();
@@ -466,59 +701,77 @@ public class Main {
         addPlaceholderText(dobField, "YYYY-MM-DD");
         addPlaceholderText(presentAddressField, "Enter your present address");
         addPlaceholderText(permanentAddressField, "Enter your permanent address");
-        addPlaceholderText(sexField, "Enter your sex");
+        //addPlaceholderText(sexField, "Enter your sex");
         addPlaceholderText(phoneNumberField, "Enter your phone number");
         registerButton.setFont(new Font("Arial", Font.BOLD, 14)); // Set font size to 14
         registerButton.setBackground(Color.GREEN); // Set background color to green
         registerButton.setForeground(Color.WHITE); // Set text color to white
         registerButton.setPreferredSize(new Dimension(200, 50)); // Set preferred size
-        gbc.gridx = 0;
+        gbc.gridx = 1;
+
         gbc.gridy = 0;
         rightPanel.add(registrationLabel, gbc);
+        gbc.gridx=0;
         gbc.gridy = 1;
-        rightPanel.add(new JLabel("Full Name:"), gbc);
+        JLabel fullNameLabel = new JLabel("Full Name");
+        fullNameLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(fullNameLabel, gbc);
         gbc.gridx = 1;
         rightPanel.add(fullNameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        rightPanel.add(new JLabel("Username:"), gbc);
+        JLabel usernameLabel = new JLabel("Username");
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(usernameLabel, gbc);
         gbc.gridx = 1;
         rightPanel.add(usernameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
-        rightPanel.add(new JLabel("Password:"), gbc);
+        JLabel passwordLabel = new JLabel("Password");
+        passwordLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(passwordLabel, gbc);
         gbc.gridx = 1;
         rightPanel.add(passwordField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 4;
-        rightPanel.add(new JLabel("Date of Birth:"), gbc);
+        JLabel dobLabel = new JLabel("Date of Birth");
+        dobLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(dobLabel, gbc);
         gbc.gridx = 1;
         rightPanel.add(dobField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 5;
-        rightPanel.add(new JLabel("Present Address:"), gbc);
+        JLabel presentAddressLabel = new JLabel("Present Address");
+        presentAddressLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(presentAddressLabel, gbc);
         gbc.gridx = 1;
         rightPanel.add(presentAddressField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 6;
-        rightPanel.add(new JLabel("Permanent Address:"), gbc);
+        JLabel permanentAddressLabel = new JLabel("Permanent Address");
+        permanentAddressLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(permanentAddressLabel, gbc);
         gbc.gridx = 1;
         rightPanel.add(permanentAddressField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 7;
-        rightPanel.add(new JLabel("Sex:"), gbc);
+        JLabel sexLabel = new JLabel("Sex");
+        sexLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(sexLabel, gbc);
         gbc.gridx = 1;
-        rightPanel.add(sexField, gbc);
+        rightPanel.add(sexComboBox, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 8;
-        rightPanel.add(new JLabel("Phone Number:"), gbc);
+        JLabel phoneNumberLabel = new JLabel("Phone Number");
+        phoneNumberLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        rightPanel.add(phoneNumberLabel, gbc);
         gbc.gridx = 1;
         rightPanel.add(phoneNumberField, gbc);
 
@@ -544,6 +797,7 @@ public class Main {
 
 
         // Admin login panel
+        // Admin login panel
         JPanel adminLoginPanel = new JPanel(new GridBagLayout());
         adminLoginPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         gbc = new GridBagConstraints();
@@ -551,9 +805,22 @@ public class Main {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField adminUsernameField = new JTextField();
+        adminUsernameField.setFont(new Font("Arial", Font.PLAIN, 18)); // Set font size
+        adminUsernameField.setPreferredSize(new Dimension(300, 30)); // Set preferred size
+
         JPasswordField adminPasswordField = new JPasswordField();
+        adminPasswordField.setFont(new Font("Arial", Font.PLAIN, 18)); // Set font size
+        adminPasswordField.setPreferredSize(new Dimension(300, 30)); // Set preferred size
+
         JButton adminLoginSubmitButton = new JButton("Login");
+        adminLoginSubmitButton.setFont(new Font("Arial", Font.BOLD, 17)); // Set font size
+        adminLoginSubmitButton.setBackground(Color.BLUE); // Set background color to blue
+        adminLoginSubmitButton.setForeground(Color.WHITE); // Set text color to white
+
         JButton adminBackButton = new JButton("Back");
+        adminBackButton.setFont(new Font("Arial", Font.BOLD, 17)); // Set font size
+        adminBackButton.setBackground(Color.GRAY); // Set background color to yellow
+        adminBackButton.setForeground(Color.BLACK);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -585,9 +852,22 @@ public class Main {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField userUsernameField = new JTextField();
+        userUsernameField.setFont(new Font("Arial", Font.PLAIN, 18)); // Set font size
+        userUsernameField.setPreferredSize(new Dimension(300, 30)); // Set preferred size
+
         JPasswordField userPasswordField = new JPasswordField();
+        userPasswordField.setFont(new Font("Arial", Font.PLAIN, 18)); // Set font size
+        userPasswordField.setPreferredSize(new Dimension(300, 30)); // Set preferred size
+
         JButton userLoginSubmitButton = new JButton("Login");
+        userLoginSubmitButton.setFont(new Font("Arial", Font.BOLD, 17)); // Set font size
+        userLoginSubmitButton.setBackground(Color.BLUE); // Set background color to blue
+        userLoginSubmitButton.setForeground(Color.WHITE); // Set text color to white
+
         JButton userBackButton = new JButton("Back");
+        userBackButton.setFont(new Font("Arial", Font.BOLD, 17)); // Set font size
+        userBackButton.setBackground(Color.GRAY); // Set background color to yellow
+        userBackButton.setForeground(Color.BLACK);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -630,9 +910,13 @@ public class Main {
 
         CardLayout cl = (CardLayout) mainPanel.getLayout();
 
-        adminLoginButton.addActionListener(e -> cl.show(mainPanel, "AdminLogin"));
+        adminLoginButton.addActionListener(e -> {
+            clearFields(adminUsernameField, adminPasswordField);
+            cl.show(mainPanel, "AdminLogin");
+        });
 
         adminLoginSubmitButton.addActionListener(e -> {
+
             String username = adminUsernameField.getText();
             String password = new String(adminPasswordField.getPassword());
             if (authenticateAdmin(username, password)) {
@@ -646,7 +930,10 @@ public class Main {
         adminBackButton.addActionListener(e -> cl.show(mainPanel, "Home"));
         adminApprovalBackButton.addActionListener(e -> cl.show(mainPanel, "AdminLogin"));
 
-        loginButton.addActionListener(e -> cl.show(mainPanel, "UserLogin"));
+        loginButton.addActionListener(e -> {
+            clearFields(userUsernameField, userPasswordField);
+            cl.show(mainPanel, "UserLogin");
+        });
 
         userLoginSubmitButton.addActionListener(e -> {
             String username = userUsernameField.getText();
@@ -658,21 +945,23 @@ public class Main {
                 JOptionPane.showMessageDialog(frame, "Invalid username or password", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-
         userBackButton.addActionListener(e -> cl.show(mainPanel, "Home"));
         profileBackButton.addActionListener(e -> cl.show(mainPanel, "UserLogin"));
 
         registerButton.addActionListener(e -> {
+
             String fullName = fullNameField.getText();
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
             String dob = dobField.getText();
             String presentAddress = presentAddressField.getText();
             String permanentAddress = permanentAddressField.getText();
-            String sex = sexField.getText();
+            // Add a JComboBox for the "Sex" field
+            String sex = (String) sexComboBox.getSelectedItem();
             String phoneNumber = phoneNumberField.getText();
             String image = imageLabel.getText();
             handleRegistration(fullName, username, password, dob, presentAddress, permanentAddress, sex, phoneNumber, image);
+            clearFields(fullNameField, usernameField, passwordField, dobField, presentAddressField, permanentAddressField, phoneNumberField);
         });
 
         // Adjust the size of the image display to passport size (35mm x 45mm)
