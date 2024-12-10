@@ -30,13 +30,16 @@ public class Main {
     }
 
     private static boolean authenticateAdmin(String username, String password) {
-        String query = "SELECT * FROM admin WHERE username = ? AND password = ?";
+        String query = "SELECT password FROM admin WHERE username = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
-            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
-            return rs.next();
+            if (rs.next()) {
+                String storedHash = rs.getString("password");
+                return storedHash.equals(PasswordUtils.hashPassword(password));
+            }
+            return false;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -44,13 +47,16 @@ public class Main {
     }
 
     private static boolean authenticateUser(String username, String password) {
-        try (Connection conn = getConnection()) {
-            String query = "SELECT * FROM users WHERE username = ? AND password = ? AND approved = TRUE";
-            PreparedStatement stmt = conn.prepareStatement(query);
+        String query = "SELECT password FROM users WHERE username = ? AND approved = TRUE";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
-            stmt.setString(2, password);
             ResultSet rs = stmt.executeQuery();
-            return rs.next();
+            if (rs.next()) {
+                String storedHash = rs.getString("password");
+                return storedHash.equals(PasswordUtils.hashPassword(password));
+            }
+            return false;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -77,9 +83,11 @@ public class Main {
             String[] dobParts = dob.split("-");
             String formattedDob = dobParts[2] + "-" + dobParts[1] + "-" + dobParts[0];
 
+            String hashedPassword = PasswordUtils.hashPassword(password);
+
             insertStmt.setString(1, fullName);
             insertStmt.setString(2, username);
-            insertStmt.setString(3, password);
+            insertStmt.setString(3, hashedPassword);
             insertStmt.setString(4, formattedDob);
             insertStmt.setString(5, presentAddress);
             insertStmt.setString(6, permanentAddress);
@@ -361,9 +369,11 @@ public class Main {
         String query = "UPDATE users SET password = ? WHERE username = ? AND password = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, newPassword);
+            String hashedOldPassword = PasswordUtils.hashPassword(oldPassword);
+            String hashedNewPassword = PasswordUtils.hashPassword(newPassword);
+            stmt.setString(1, hashedNewPassword);
             stmt.setString(2, username);
-            stmt.setString(3, oldPassword);
+            stmt.setString(3, hashedOldPassword);
             int rowsUpdated = stmt.executeUpdate();
             return rowsUpdated > 0;
         } catch (SQLException e) {
@@ -929,6 +939,7 @@ public class Main {
             } else {
                 JOptionPane.showMessageDialog(frame, "Invalid admin credentials", "Error", JOptionPane.ERROR_MESSAGE);
             }
+            clearFields(adminUsernameField, adminPasswordField);
         });
 
         adminBackButton.addActionListener(e -> cl.show(mainPanel, "Home"));
