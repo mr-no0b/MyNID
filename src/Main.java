@@ -21,7 +21,7 @@ public class Main {
         return properties;
     }
 
-    private static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         Properties properties = loadDatabaseProperties();
         String url = properties.getProperty("db.url");
         String username = properties.getProperty("db.username");
@@ -30,37 +30,11 @@ public class Main {
     }
 
     private static boolean authenticateAdmin(String username, String password) {
-        String query = "SELECT password FROM admin WHERE username = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                String storedHash = rs.getString("password");
-                return storedHash.equals(PasswordUtils.hashPassword(password));
-            }
-            return false;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return DatabaseUtils.authenticateAdmin(username, password);
     }
 
     private static boolean authenticateUser(String username, String password) {
-        String query = "SELECT password FROM users WHERE username = ? AND approved = TRUE";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                String storedHash = rs.getString("password");
-                return storedHash.equals(PasswordUtils.hashPassword(password));
-            }
-            return false;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return DatabaseUtils.authenticateUser(username, password);
     }
 
     private static void handleRegistration(String fullName, String username, String password, String dob, String presentAddress, String permanentAddress, String sex, String phoneNumber, String image) {
@@ -366,20 +340,7 @@ public class Main {
     }
 
     private static boolean changeUserPassword(String username, String oldPassword, String newPassword) {
-        String query = "UPDATE users SET password = ? WHERE username = ? AND password = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            String hashedOldPassword = PasswordUtils.hashPassword(oldPassword);
-            String hashedNewPassword = PasswordUtils.hashPassword(newPassword);
-            stmt.setString(1, hashedNewPassword);
-            stmt.setString(2, username);
-            stmt.setString(3, hashedOldPassword);
-            int rowsUpdated = stmt.executeUpdate();
-            return rowsUpdated > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return DatabaseUtils.changeUserPassword(username, oldPassword, newPassword);
     }
 
     private static JPanel createLabel(String labelName, String labelValue) {
