@@ -469,7 +469,11 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Full-sized window
         frame.setLayout(new BorderLayout());
+        // Set the frame to not resizable
+        frame.setResizable(false);
 
+// Set the application name to "MyNID"
+        frame.setTitle("MyNID");
         // Top section for app name
         JPanel topPanel = new JPanel() {
             @Override
@@ -680,7 +684,7 @@ public class Main {
 
         String[] sexOptions = {"Male", "Female"};
         JComboBox<String> sexComboBox = new JComboBox<>(sexOptions);
-        sexComboBox.setFont(new Font("Arial", Font.PLAIN, 18)); // Increase font size
+        sexComboBox.setFont(new Font("Arial", Font.PLAIN, 13)); // Increase font size
         sexComboBox.setPreferredSize(new Dimension(300, 40)); // Increase size
 
         JTextField phoneNumberField = new JTextField();
@@ -947,22 +951,28 @@ public class Main {
         });
         userBackButton.addActionListener(e -> cl.show(mainPanel, "Home"));
         profileBackButton.addActionListener(e -> cl.show(mainPanel, "UserLogin"));
-
         registerButton.addActionListener(e -> {
-
             String fullName = fullNameField.getText();
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
             String dob = dobField.getText();
             String presentAddress = presentAddressField.getText();
             String permanentAddress = permanentAddressField.getText();
-            // Add a JComboBox for the "Sex" field
             String sex = (String) sexComboBox.getSelectedItem();
             String phoneNumber = phoneNumberField.getText();
             String image = imageLabel.getText();
+
+            if (fullName.isEmpty() || username.isEmpty() || password.isEmpty() || dob.isEmpty() ||
+                    presentAddress.isEmpty() || permanentAddress.isEmpty() || sex.isEmpty() ||
+                    phoneNumber.isEmpty() || image.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "All fields are required", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             handleRegistration(fullName, username, password, dob, presentAddress, permanentAddress, sex, phoneNumber, image);
             clearFields(fullNameField, usernameField, passwordField, dobField, presentAddressField, permanentAddressField, phoneNumberField);
         });
+
 
         // Adjust the size of the image display to passport size (35mm x 45mm)
         // Adjust the size of the image display to passport size (35mm x 45mm)
