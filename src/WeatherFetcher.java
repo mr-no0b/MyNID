@@ -6,7 +6,7 @@ import java.net.URL;
 
 public class WeatherFetcher {
     //d6f20afef12a1cf5f5d464b8368c26d6
-    private static final String API_KEY = ""; // Replace with your OpenWeather API key
+    private static final String API_KEY = "d6f20afef12a1cf5f5d464b8368c26d6"; // Replace with your OpenWeather API key
     private static final String API_URL = "http://api.openweathermap.org/data/2.5/weather?q=%s&units=metric&appid=%s";
 
     public static String getTemperature(String city) {
